@@ -37,37 +37,28 @@ try {
     $txpower = (int)$_POST["txpower"];
     $rssi = (int)$_POST["rssi"];
 
-
     $dir = dirname($_SERVER['DOCUMENT_ROOT']) . '/sqlite_db';
     if (!file_exists($dir)) {
         mkdir($dir, 0644, true);
     }
-    $db = new SQLite3($dir . '/ibeacons.sqlite3');
+    $db = new PDO('sqlite:' . $dir . '/ibeacons.sqlite3');
     unset($dir);
-    $db->enableExceptions(true);
-
-    $db->exec('CREATE TABLE IF NOT EXISTS `traces` (
-                   `datetime` TEXT DEFAULT CURRENT_TIMESTAMP,
-                   `selfMac` INTEGER NOT NULL,
-                   `uuid` BLOB NOT NULL,
-                   `major` INTEGER NOT NULL,
-                   `minor` INTEGER NOT NULL,
-                   `mac` INTEGER NOT NULL,
-                   `txpower` INTEGER NOT NULL,
-                   `rssi` INTEGER NOT NULL
-               )');
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 
     $stmt = $db->prepare("INSERT INTO traces(selfMac,`uuid`,major,minor,mac,txpower,rssi) VALUES(:selfMac,:uuid,:major,:minor,:mac,:txpower,:rssi)");
-    $stmt->bindValue(':selfMac', hexdec($selfMac), SQLITE3_TEXT);
-    $stmt->bindValue(':uuid', pack("H*", $uuid), SQLITE3_INTEGER);
-    $stmt->bindValue(':major', $major, SQLITE3_BLOB);
-    $stmt->bindValue(':minor', $minor, SQLITE3_INTEGER);
-    $stmt->bindValue(':mac', hexdec($mac), SQLITE3_INTEGER);
-    $stmt->bindValue(':txpower', $txpower, SQLITE3_INTEGER);
-    $stmt->bindValue(':rssi', $rssi, SQLITE3_INTEGER);
-    $result = $stmt->execute();
+    $stmt->execute(array(
+        ':selfMac' => hexdec($selfMac),
+        ':uuid' => pack("H*", $uuid),
+        ':major' => $major,
+        ':minor' => $minor,
+        ':mac' => hexdec($mac),
+        ':txpower' => $txpower,
+        ':rssi' => $rssi));
 
-    echo 1;
+    $affected_rows = $stmt->rowCount();
+    if ($affected_rows < 1) http_response_code(500);
+    else echo $affected_rows;
 } catch (Exception $e) {
     http_response_code(500);
     echo $e;

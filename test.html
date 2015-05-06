@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+</head>
+<body>
+<form id="f1"></form><br/>
+
+<button id="b1">go</button><br/>
+
+<div id="res" style="border: 1px #ccc dotted; height: 200px;"></div>
+</body>
+<script>
+    function addField(to, key, defVal) {
+        $('<label>')
+            .attr('for', key)
+            .text(key)
+            .appendTo(to);
+
+        $('<input>')
+            .attr('type', 'text')
+            .attr('name', key)
+            .attr('value', defVal ? defVal : '')
+            .appendTo(to);
+
+        $('<br/>').appendTo(to);
+    }
+
+    $(function() {
+        console.log('loaded');
+
+        var params = ['selfMac', 'uuid', 'major', 'minor', 'mac', 'txpower', 'rssi'];
+        var defVal = ['00:1A:7D:DA:71:0B', '999557e723e44bed988aa02fe47f9999', '98', '63', '00:21:27:DC:69:88', '-60', '-72'];
+        for (var i in params) {
+            addField('#f1', params[i], defVal[i]);
+        }
+
+        $('#b1').click(function() {
+            $('#res').css('background', '#fff').empty();
+
+            console.log('clicked');
+
+            var dt = {};
+            $('#f1 > input[type=text]')
+                .each(function(i, e) {
+                    dt[$(e).attr('name')] = $(e).val();
+                });
+
+            $.ajax('report.php', {
+                data: dt,
+                type: 'POST'
+            }).done(function(dt, tS, xhr) {
+                $('#res').css('background', '#9f9').html(dt);
+            }).fail(function(xhr, tS, eT) {
+                $('#res').css('background', '#f99').html(xhr.responseText);
+            });
+        });
+    });
+</script>
+</html>
