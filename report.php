@@ -28,6 +28,8 @@ NONONO 㗎';
     die(1);
 }
 
+$db = null;
+
 try {
     $selfMac = $_POST["selfMac"];
     $uuid = $_POST["uuid"];
@@ -36,7 +38,6 @@ try {
     $mac = $_POST["mac"];
     $txpower = (int)$_POST["txpower"];
     $rssi = (int)$_POST["rssi"];
-
 
     $dir = dirname($_SERVER['DOCUMENT_ROOT']) . '/sqlite_db';
     if (!file_exists($dir)) {
@@ -58,17 +59,20 @@ try {
                )');
 
     $stmt = $db->prepare("INSERT INTO traces(selfMac,`uuid`,major,minor,mac,txpower,rssi) VALUES(:selfMac,:uuid,:major,:minor,:mac,:txpower,:rssi)");
-    $stmt->bindValue(':selfMac', hexdec($selfMac), SQLITE3_TEXT);
-    $stmt->bindValue(':uuid', pack("H*", $uuid), SQLITE3_INTEGER);
-    $stmt->bindValue(':major', $major, SQLITE3_BLOB);
+    $stmt->bindValue(':selfMac', hexdec($selfMac), SQLITE3_INTEGER);
+    $stmt->bindValue(':uuid', pack("H*", $uuid), SQLITE3_BLOB);
+    $stmt->bindValue(':major', $major, SQLITE3_INTEGER);
     $stmt->bindValue(':minor', $minor, SQLITE3_INTEGER);
     $stmt->bindValue(':mac', hexdec($mac), SQLITE3_INTEGER);
     $stmt->bindValue(':txpower', $txpower, SQLITE3_INTEGER);
     $stmt->bindValue(':rssi', $rssi, SQLITE3_INTEGER);
     $result = $stmt->execute();
 
+    $db->close();
+
     echo 1;
 } catch (Exception $e) {
+    if (!is_null($db)) $db->close();
     http_response_code(500);
     echo $e;
     die(1);
