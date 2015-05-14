@@ -34,7 +34,6 @@ try {
     if (empty($_POST['jsonData'])) throw new Exception('jsonContent is empty()');
 
     $jsonObj = json_decode($_POST['jsonData']);
-    print_r($jsonObj);
 
     $dir = dirname($_SERVER['DOCUMENT_ROOT']) . '/sqlite_db';
     if (!file_exists($dir)) {
@@ -72,7 +71,6 @@ try {
         $txpower = $el->txpower;
         $rssi = $el->rssi;
         $result = $stmt->execute();
-        print_r($result->fetchArray(SQLITE3_NUM));
     }
 
     $db->close();
