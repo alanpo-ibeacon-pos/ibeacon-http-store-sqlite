@@ -43,6 +43,8 @@ try {
     unset($dir);
     $db->enableExceptions(true);
 
+    $db->exec('BEGIN TRANSACTION');
+
     $db->exec('CREATE TABLE IF NOT EXISTS `traces` (
                    `datetime` TEXT DEFAULT CURRENT_TIMESTAMP,
                    `selfMac` INTEGER NOT NULL,
@@ -72,6 +74,8 @@ try {
         $rssi = $el->rssi;
         $result = $stmt->execute();
     }
+
+    $db->exec('COMMIT TRANSACTION');
 
     $db->close();
 
