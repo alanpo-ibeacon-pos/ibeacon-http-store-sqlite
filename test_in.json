@@ -1,0 +1,20 @@
+[
+  {
+    "major":902,
+    "uuid":"74278bdab64445208f0c720eaf059935",
+    "txpower":-58,
+    "mac":"20:cd:39:86:2e:84",
+    "selfMac":"00:1a:7d:da:71:13",
+    "rssi":-73,
+    "minor":102
+  },
+  {
+    "major":902,
+    "uuid":"74278bdab64445208f0c720eaf059935",
+    "txpower":-58,
+    "mac":"20:cd:39:86:2e:84",
+    "selfMac":"00:1a:7d:da:71:13",
+    "rssi":-74,
+    "minor":102
+  }
+]

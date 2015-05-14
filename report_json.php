@@ -71,6 +71,7 @@ try {
         $txpower = $el->txpower;
         $rssi = $el->rssi;
         $result = $stmt->execute();
+        print_r($result->fetchArray(SQLITE3_NUM));
     }
 
     $db->close();
