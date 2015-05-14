@@ -28,38 +28,56 @@ NONONO 㗎';
     die(1);
 }
 
+$db = null;
+
 try {
-    $selfMac = $_POST["selfMac"];
-    $uuid = $_POST["uuid"];
-    $major = (int)$_POST["major"];
-    $minor = (int)$_POST["minor"];
-    $mac = $_POST["mac"];
-    $txpower = (int)$_POST["txpower"];
-    $rssi = (int)$_POST["rssi"];
+    if (empty($_POST['jsonContent'])) throw new Exception('jsonContent is empty()');
+
+    $jsonObj = json_decode($_POST['jsonContent']);
 
     $dir = dirname($_SERVER['DOCUMENT_ROOT']) . '/sqlite_db';
     if (!file_exists($dir)) {
         mkdir($dir, 0644, true);
     }
-    $db = new PDO('sqlite:' . $dir . '/ibeacons.sqlite3');
+    $db = new SQLite3($dir . '/ibeacons.sqlite3');
     unset($dir);
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+    $db->enableExceptions(true);
+
+    $db->exec('CREATE TABLE IF NOT EXISTS `traces` (
+                   `datetime` TEXT DEFAULT CURRENT_TIMESTAMP,
+                   `selfMac` INTEGER NOT NULL,
+                   `uuid` BLOB NOT NULL,
+                   `major` INTEGER NOT NULL,
+                   `minor` INTEGER NOT NULL,
+                   `mac` INTEGER NOT NULL,
+                   `txpower` INTEGER NOT NULL,
+                   `rssi` INTEGER NOT NULL
+               )');
 
     $stmt = $db->prepare("INSERT INTO traces(selfMac,`uuid`,major,minor,mac,txpower,rssi) VALUES(:selfMac,:uuid,:major,:minor,:mac,:txpower,:rssi)");
-    $stmt->execute(array(
-        ':selfMac' => hexdec($selfMac),
-        ':uuid' => pack("H*", $uuid),
-        ':major' => $major,
-        ':minor' => $minor,
-        ':mac' => hexdec($mac),
-        ':txpower' => $txpower,
-        ':rssi' => $rssi));
+    $stmt->bindParam(':selfMac', $hexSelfMac, SQLITE3_INTEGER);
+    $stmt->bindParam(':uuid', $binUuid, SQLITE3_BLOB);
+    $stmt->bindParam(':major', $major, SQLITE3_INTEGER);
+    $stmt->bindParam(':minor', $minor, SQLITE3_INTEGER);
+    $stmt->bindParam(':mac', $hexMac, SQLITE3_INTEGER);
+    $stmt->bindParam(':txpower', $txpower, SQLITE3_INTEGER);
+    $stmt->bindParam(':rssi', $rssi, SQLITE3_INTEGER);
+    foreach ($jsonObj as $el) {
+        $hexSelfMac = hexdec($el->selfMac);
+        $binUuid = pack("H*", $el->uuid);
+        $major = $el->major;
+        $minor = $el->minor;
+        $hexMac = hexdec($el->mac);
+        $txpower = $el->txpower;
+        $rssi = $el->rssi;
+        $result = $stmt->execute();
+    }
 
-    $affected_rows = $stmt->rowCount();
-    if ($affected_rows < 1) http_response_code(500);
-    else echo $affected_rows;
+    $db->close();
+
+    echo 1;
 } catch (Exception $e) {
+    if (!is_null($db)) $db->close();
     http_response_code(500);
     echo $e;
     die(1);
