@@ -39,7 +39,7 @@ try {
     if (!file_exists($dir)) {
         mkdir($dir, 0644, true);
     }
-    $db = new SQLite3($dir . '/ibeacons.sqlite3');
+    $db = new SQLite3($dir . '/ibeacons.sqlite3', SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE);
     unset($dir);
     $db->enableExceptions(true);
 
