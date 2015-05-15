@@ -56,7 +56,8 @@ try {
                    `rssi` INTEGER NOT NULL
                )');
 
-    $stmt = $db->prepare("INSERT INTO traces(selfMac,`uuid`,major,minor,mac,txpower,rssi) VALUES(:selfMac,:uuid,:major,:minor,:mac,:txpower,:rssi)");
+    $stmt = $db->prepare("INSERT INTO traces(datetime, selfMac,`uuid`,major,minor,mac,txpower,rssi) VALUES(:datetime, :selfMac,:uuid,:major,:minor,:mac,:txpower,:rssi)");
+    $stmt->bindParam(':datetime', $dateTime, SQLITE3_TEXT);
     $stmt->bindParam(':selfMac', $hexSelfMac, SQLITE3_INTEGER);
     $stmt->bindParam(':uuid', $binUuid, SQLITE3_BLOB);
     $stmt->bindParam(':major', $major, SQLITE3_INTEGER);
@@ -65,6 +66,7 @@ try {
     $stmt->bindParam(':txpower', $txpower, SQLITE3_INTEGER);
     $stmt->bindParam(':rssi', $rssi, SQLITE3_INTEGER);
     foreach ($jsonObj as $el) {
+        $dateTime = $el->datetime;
         $hexSelfMac = hexdec($el->selfMac);
         $binUuid = pack("H*", $el->uuid);
         $major = $el->major;
